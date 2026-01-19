@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% load static %}
+  <link rel="shortcut icon" type="image/png" href="{% static 'core/img/favicon.png' %}" />
+  <title>{% block title %}{% endblock %}</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway:400,400i,700,700i" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link href="{% static 'core/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'core/vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+  <link href="{% static 'core/css/main.css' %}" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+
+    <!-- Marca -->
+    <a class="navbar-brand" href="{% url 'home' %}">
+      BQRV
+    </a>
+
+    <!-- Botón móvil -->
+    <button class="navbar-toggler" type="button"
+            data-toggle="collapse"
+            data-target="#navbarMain"
+            aria-controls="navbarMain"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Contenido -->
+    <div class="collapse navbar-collapse" id="navbarMain">
+
+      <!-- Izquierda -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'pages:pages' %}">Páginas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'contact' %}">Contacto</a>
+        </li>
+      </ul>
+
+      <!-- Derecha -->
+      <ul class="navbar-nav">
+
+        {% if not request.user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Acceder</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'signup' %}">Registro</a>
+          </li>
+        {% else %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle"
+               href="#"
+               id="userDropdown"
+               role="button"
+               data-toggle="dropdown"
+               aria-haspopup="true"
+               aria-expanded="false">
+              {{ request.user.username }}
+            </a>
+
+            <div class="dropdown-menu dropdown-menu-right"
+                 aria-labelledby="userDropdown">
+
+              <a class="dropdown-item" href="{% url 'profile' %}">
+                Perfil
+              </a>
+
+              <a class="dropdown-item" href="{% url 'scanner' %}">
+                Scanner
+              </a>
+
+              <div class="dropdown-divider"></div>
+
+              <form method="post" action="{% url 'logout' %}" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item">
+                  Salir
+                </button>
+              </form>
+
+            </div>
+          </li>
+        {% endif %}
+
+      </ul>
+
+    </div>
+  </div>
+</nav>
+<!-- =============== FIN NAVBAR =============== -->
+
+<!-- Contenido -->
+<main class="container mt-4">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Javascript -->
+<script src="{% static 'core/vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'core/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'core/js/main.js' %}"></script>
+
+</body>
+</html>
+

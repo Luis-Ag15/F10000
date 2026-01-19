@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Registro Resultados{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+          Registrar Resultados
+        </div>
+
+        <div class="card-body">
+
+          {# 🔹 MENSAJES DE DJANGO #}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-success text-center">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <!-- FORMULARIO -->
+          <form id="formResultados" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.errors %}
+              <div class="alert alert-danger">
+                {{ form.errors }}
+              </div>
+            {% endif %}
+
+            <div class="form-group">
+              {{ form.id.label_tag }}
+              {{ form.id }}
+            </div>
+
+            <div class="form-group">
+              {{ form.nombre.label_tag }}
+              {{ form.nombre }}
+            </div>
+
+            <div class="form-group">
+              {{ form.email.label_tag }}
+              {{ form.email }}
+            </div>
+
+            <div class="form-group">
+              {{ form.telefono.label_tag }}
+              {{ form.telefono }}
+            </div>
+
+            <div class="form-group">
+              {{ form.fecha.label_tag }}
+              {{ form.fecha }}
+            </div>
+
+            <!-- FOTO PERFIL -->
+            <div class="form-group">
+              {{ form.foto_perfil.label_tag }}
+              {{ form.foto_perfil }}
+
+              <div class="mt-2">
+                <img id="preview_foto_perfil"
+                     src=""
+                     class="img-fluid rounded d-none"
+                     style="max-height: 250px; object-fit: cover;">
+              </div>
+            </div>
+
+            <!-- FOTO RESULTADO -->
+            <div class="form-group">
+              {{ form.foto_resultado.label_tag }}
+              {{ form.foto_resultado }}
+
+              <div class="mt-2">
+                <img id="preview_foto_resultado"
+                     src=""
+                     class="img-fluid rounded d-none"
+                     style="max-height: 250px; object-fit: cover;">
+              </div>
+            </div>
+
+            <!-- BOTONES -->
+            <button type="submit" class="btn btn-success">
+              Guardar
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="btnCancelar">
+              Cancelar
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== JS ===================== -->
+<script>
+  function mostrarPreview(input, previewId) {
+    const preview = document.getElementById(previewId);
+
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.src = e.target.result;
+        preview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      preview.src = "";
+      preview.classList.add("d-none");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("formResultados");
+    const btnCancelar = document.getElementById("btnCancelar");
+
+    const inputPerfil = document.getElementById("id_foto_perfil");
+    const inputResultado = document.getElementById("id_foto_resultado");
+
+    const previewPerfil = document.getElementById("preview_foto_perfil");
+    const previewResultado = document.getElementById("preview_foto_resultado");
+
+    // Preview imágenes
+    if (inputPerfil) {
+      inputPerfil.addEventListener("change", function () {
+        mostrarPreview(this, "preview_foto_perfil");
+      });
+    }
+
+    if (inputResultado) {
+      inputResultado.addEventListener("change", function () {
+        mostrarPreview(this, "preview_foto_resultado");
+      });
+    }
+
+    // BOTÓN CANCELAR (BORRA TODO)
+    btnCancelar.addEventListener("click", function () {
+
+      // Borrar inputs, selects y textareas
+      form.querySelectorAll("input, textarea, select").forEach(el => {
+        if (el.type === "checkbox" || el.type === "radio") {
+          el.checked = false;
+        } else {
+          el.value = "";
+        }
+      });
+
+      // Limpiar inputs file
+      if (inputPerfil) inputPerfil.value = "";
+      if (inputResultado) inputResultado.value = "";
+
+      // Ocultar previews
+      previewPerfil.src = "";
+      previewPerfil.classList.add("d-none");
+
+      previewResultado.src = "";
+      previewResultado.classList.add("d-none");
+
+      // Ocultar mensajes de Django (opcional pero recomendado)
+      document.querySelectorAll(".alert").forEach(alert => alert.remove());
+
+    });
+
+  });
+</script>
+{% endblock %}
+
+

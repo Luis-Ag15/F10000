@@ -1,0 +1,166 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Scanner{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+  <!-- Bootstrap (3 o 4, funciona con ambos) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="{% static 'lectorqr/css/style_camara.css' %}">
+
+  <!-- CSS neutro (compatible BS3 / BS4) -->
+  <style>
+    .box {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #f9f9f9;
+      margin-bottom: 20px;
+    }
+    .box-header {
+      padding: 10px;
+      background: #eee;
+      text-align: center;
+      font-weight: bold;
+    }
+    .box-body {
+      padding: 15px;
+    }
+    .center-block {
+      float: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+
+</head>
+<body>
+
+<div class="container">
+
+  <div class="row">
+
+    <div class="col-md-12 center-block">
+
+      <div class="box">
+
+        <div class="box-header">
+          Escanea un código QR
+        </div>
+
+        <div class="box-body">
+
+          <div class="row">
+
+            <!-- CÁMARA -->
+            <div class="col-md-6">
+
+              <div class="contenedor_camara">
+
+                <div class="text-center" id="loadingMessage">
+                  🎥 Asegúrese de habilitar la cámara web.
+                </div>
+
+                <canvas id="canvas" hidden></canvas>
+
+                <div id="output" hidden style="margin-bottom:20px;">
+                  <div id="outputMessage">
+                    Aún no se ha detectado código QR
+                  </div>
+
+                  <div hidden>
+                    <b style="color:#eeeeee;">Código encontrado:</b>
+                    <span id="outputData" style="color:#eeeeee;"></span>
+                  </div>
+
+                  {% csrf_token %}
+                </div>
+
+              </div>
+            </div>
+
+            <!-- RESULTADO -->
+            <div class="col-md-6">
+              <div id="resultado"></div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- AUDIO -->
+<div style="position: fixed; top: -60px;">
+  <audio controls id="sonido_qr" style="width:0;height:0;">
+    <source src="{% static 'lectorqr/sonido/beep.mp3' %}" type="audio/mpeg">
+  </audio>
+</div>
+
+<!-- SCRIPTS -->
+<script src="{% static 'lectorqr/js/jquery-3.1.1.min.js' %}"></script>
+<script src="{% static 'lectorqr/js/qr/jsQR.js' %}"></script>
+<script src="{% static 'lectorqr/js/scanear_qr.js' %}"></script>
+
+<!-- SCRIPT PRINCIPAL -->
+<script>
+  function guardar_codigo_escaneado(result_qr) {
+
+    if (!result_qr) {
+      alert("Código vacío");
+      return;
+    }
+
+    var alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    if (!alphanumericRegex.test(result_qr)) {
+      alert("El código no es alfanumérico");
+      return;
+    }
+
+    var csrfToken = $("[name=csrfmiddlewaretoken]").val();
+
+    $.ajax({
+      type: "POST",
+      url: "{% url 'view_detalles_alumno' %}",
+      data: {
+        datoqr: result_qr,
+        csrfmiddlewaretoken: csrfToken
+      },
+      dataType: "json",
+
+      success: function (response) {
+
+        if (!response || response.id_alumno === undefined) {
+          alert("Respuesta inválida del servidor");
+          return;
+        }
+
+        if (response.id_alumno === 0) {
+          alert("No se encontró ningún registro.");
+          return;
+        }
+
+        window.location.href =
+          "{% url 'detalles_alumno' %}?id=" + response.id_alumno;
+      },
+
+      error: function (xhr, status, error) {
+        console.error(error);
+        alert("Error en la petición AJAX 😭");
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
+{% endblock %}
+

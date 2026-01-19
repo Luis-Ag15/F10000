@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<style>
+  label { display: none; }
+
+  .errorlist {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .helptext {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .copy-msg {
+    font-size: 0.8rem;
+    color: green;
+    display: none;
+    margin-top: 0.25rem;
+  }
+</style>
+
+<main role="main">
+  <div class="container">
+    <div class="row mt-4">
+      <div class="col-md-8 mx-auto">
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+
+            <h3 class="mb-4 text-center">Registro</h3>
+
+            <!-- ERRORES GENERALES -->
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <form method="post">{% csrf_token %}
+
+              <!-- USUARIO -->
+              <div class="mb-3">
+                {{ form.username.errors }}
+                {{ form.username }}
+                {% if form.username.help_text %}
+                  <span class="helptext">{{ form.username.help_text }}</span>
+                {% endif %}
+              </div>
+
+              <!-- NOMBRE -->
+              <div class="mb-3">
+                {{ form.first_name.errors }}
+                {{ form.first_name }}
+              </div>
+
+              <!-- CÓDIGO -->
+              <div class="mb-3">
+                {{ form.last_name.errors }}
+                <div class="input-group">
+                  {{ form.last_name }}
+                  <button class="btn btn-outline-primary ms-1" type="button" onclick="copiarCodigo()">
+                    📋
+                  </button>
+                </div>
+                <div id="copyMsg" class="copy-msg">Código copiado ✔</div>
+              </div>
+
+              <!-- EMAIL -->
+              <div class="mb-3">
+                {{ form.email.errors }}
+                {{ form.email }}
+              </div>
+
+              <!-- PASSWORD 1 -->
+              <div class="mb-3">
+                {{ form.password1.errors }}
+                {{ form.password1 }}
+                {% if form.password1.help_text %}
+                  <span class="helptext">{{ form.password1.help_text }}</span>
+                {% endif %}
+              </div>
+
+              <!-- PASSWORD 2 -->
+              <div class="mb-3">
+                {{ form.password2.errors }}
+                {{ form.password2 }}
+                {% if form.password2.help_text %}
+                  <span class="helptext">{{ form.password2.help_text }}</span>
+                {% endif %}
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 mt-3">
+                Confirmar
+              </button>
+
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function copiarCodigo() {
+  const input = document.getElementById("codigo");
+  const msg = document.getElementById("copyMsg");
+
+  if (!input.value) return;
+
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value);
+
+  msg.style.display = "block";
+  setTimeout(() => msg.style.display = "none", 2000);
+}
+</script>
+
+{% endblock %}
