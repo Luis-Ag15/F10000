@@ -1,20 +1,27 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect
-from django.views.generic.base import TemplateView
+from django.views.generic import CreateView, TemplateView
 from django.http import JsonResponse
-from django.views.generic import CreateView
 from django.contrib import messages
+
 from . import models
 from .models import Alumno
 from .forms import AlumnoForm
 
 
-class AlumnoCreateView(LoginRequiredMixin, CreateView):
+# ======================================================
+# REGISTRO DE RESULTADOS (SOLO STAFF Y SUPERUSERS)
+# ======================================================
+class AlumnoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Alumno
     form_class = AlumnoForm
     template_name = 'lectorqr/alumno_form.html'
     login_url = reverse_lazy('login')
+
+    # 🔐 Validación de permisos
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
 
     def form_valid(self, form):
         self.object = form.save()
@@ -22,16 +29,30 @@ class AlumnoCreateView(LoginRequiredMixin, CreateView):
             self.request,
             "Resultados registrados exitosamente"
         )
-        # 🔹 REDIRIGE A /resultados/
         return redirect('alumno_create')
 
 
-class ScannerPageView(LoginRequiredMixin, TemplateView):
+# ======================================================
+# PÁGINA DEL SCANNER (SOLO STAFF Y SUPERUSERS)
+# ======================================================
+class ScannerPageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "lectorqr/scanner.html"
     login_url = reverse_lazy('admin:login')
 
+    # 🔐 Validación de permisos
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
 
+
+# ======================================================
+# CONSULTA POR QR (SOLO STAFF Y SUPERUSERS)
+# ======================================================
 def view_detalles_alumno(request):
+    if not request.user.is_authenticated or not (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        return JsonResponse({'error': 'Acceso no autorizado'}, status=403)
+
     if request.method == 'POST':
         result_qr = request.POST.get('datoqr')
 
@@ -42,10 +63,22 @@ def view_detalles_alumno(request):
         except models.Alumno.DoesNotExist:
             return JsonResponse({'id_alumno': 0})
 
-    return JsonResponse({'error': 'Solicitud no válida'})
+    return JsonResponse({'error': 'Solicitud no válida'}, status=400)
 
 
+# ======================================================
+# DETALLES DEL ALUMNO (SOLO STAFF Y SUPERUSERS)
+# ======================================================
 def detalles_alumno(request):
+    if not request.user.is_authenticated or not (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        return render(
+            request,
+            "error.html",
+            {"error_message": "No tienes permisos para acceder a esta sección"}
+        )
+
     id_alumno = request.GET.get('id')
 
     if id_alumno:
@@ -69,5 +102,7 @@ def detalles_alumno(request):
             )
 
     return JsonResponse(
-        {"error": "No se proporcionó el parámetro 'id' en la URL."}
+        {"error": "No se proporcionó el parámetro 'id' en la URL."},
+        status=400
     )
+
